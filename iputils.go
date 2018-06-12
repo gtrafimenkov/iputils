@@ -28,6 +28,15 @@ var (
 
 	// MaxIPv6 contains maximal possible IPv6
 	MaxIPv6 = []byte{0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
+
+	// MinIPv4 contains minimal possible IPv4
+	MinIPv4 = []byte{0, 0, 0, 0}
+
+	// MinIPv4In6 contains minimal possible IPv4 in IPv6 structure
+	MinIPv4In6 = []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0xff, 0, 0, 0, 0}
+
+	// MinIPv6 contains minimal possible IPv6
+	MinIPv6 = []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 )
 
 // CopyIP copies ip address
@@ -55,6 +64,29 @@ func Next(ip net.IP) bool {
 		ip[i]++
 		// if no overflow, we are done.
 		if ip[i] > 0 {
+			break
+		}
+	}
+	return true
+}
+
+// Prev decrements ip to the previous sequental value if that's possible.
+// If not possible, false is returned.
+func Prev(ip net.IP) bool {
+	size := len(ip)
+
+	if size == IPv4Size && bytes.Equal(ip, MinIPv4) {
+		return false
+	}
+
+	if size == IPv6Size && (bytes.Equal(ip, MinIPv4In6) || bytes.Equal(ip, MinIPv6)) {
+		return false
+	}
+
+	for i := size - 1; i >= 0; i-- {
+		ip[i]--
+		// if no overflow, we are done.
+		if ip[i] != 0xff {
 			break
 		}
 	}

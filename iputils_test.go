@@ -37,6 +37,34 @@ func TestNext(t *testing.T) {
 	}
 }
 
+func TestPrev(t *testing.T) {
+	type testCase struct {
+		input net.IP
+		prev  net.IP
+		ok    bool
+	}
+	cases := []testCase{
+		testCase{net.ParseIP("192.168.0.1"), net.ParseIP("192.168.0.0"), true},
+		testCase{[]byte{192, 168, 0, 1}, net.ParseIP("192.168.0.0"), true},
+		testCase{net.IPv4(192, 168, 0, 1), net.ParseIP("192.168.0.0"), true},
+		testCase{net.ParseIP("192.168.1.0"), net.ParseIP("192.168.0.255"), true},
+		testCase{net.ParseIP("192.168.0.255"), net.ParseIP("192.168.0.254"), true},
+		testCase{net.ParseIP("0.0.0.0"), net.ParseIP("0.0.0.0"), false},
+		testCase{[]byte{0, 0, 0, 0}, net.ParseIP("0.0.0.0"), false},
+		testCase{net.IPv4(0, 0, 0, 0), net.ParseIP("0.0.0.0"), false},
+		testCase{net.ParseIP("::2"), net.ParseIP("::1"), true},
+		testCase{net.ParseIP("::1"), net.ParseIP("::"), true},
+		testCase{net.ParseIP("::"), net.ParseIP("::"), false},
+	}
+	for _, test := range cases {
+		prev := CopyIP(test.input)
+		ok := Prev(prev)
+		if test.ok != ok || !test.prev.Equal(prev) {
+			t.Errorf("expecting (%v, %v), got (%v, %v)", test.prev, test.ok, prev, ok)
+		}
+	}
+}
+
 func TestGetIPRange(t *testing.T) {
 	type testCase struct {
 		network string
